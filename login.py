@@ -13,28 +13,29 @@ cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS employee(
     EmpID INT PRIMARY KEY,
+    UserID INT NOT NULL,
     EmpPos VARCHAR(255) NOT NULL,
     EmpSalary DECIMAL(10, 2) NOT NULL,
     Password VARCHAR(255) NOT NULL,
-    EmpDep VARCHAR(255))''')
+    EmpDep VARCHAR(255),
+    FOREIGN KEY (UserID) REFERENCES user(UserID))''')
 
 # Check if there's any data in the table
 cursor.execute('SELECT COUNT(*) FROM employee')
 if cursor.fetchone()[0] == 0:  # If the table is empty, then insert data
     employees_data = [
-        (10000, 'Employee', 10000, 'Passw0rd', 'Finance'),
-        (11111, 'Manager', 20000.33, 'Passw0rd1', 'Finance'),
-        (12345, 'HR', 50000, 'Passw0rd2', 'HR'),
-        (22222, 'HR', 1245.36, 'Passw0rd3', None),
-        (54321, 'Employee', 10000.55, 'Passw0rd4', None)
+        (10000, 1,'Employee', 10000, 'Passw0rd', 'Finance'),
+        (11111, 2, 'Manager', 20000.33, 'Passw0rd1', 'Finance'),
+        (12345, 3, 'HR', 50000, 'Passw0rd2', 'HR'),
+        (22222, 4, 'HR', 1245.36, 'Passw0rd3', None),
+        (54321, 5, 'Employee', 10000.55, 'Passw0rd4', None)
     ]
     cursor.executemany('''
-        INSERT INTO employee (EmpID, EmpPos, EmpSalary, Password, EmpDep)
-        SELECT ?, ?, ?, ?, ?
+        INSERT INTO employee (EmpID, UserID, EmpPos, EmpSalary, Password, EmpDep)
+        SELECT ?, ?, ?, ?, ?, ?
         WHERE NOT EXISTS (SELECT 1 FROM employee WHERE EmpID = ?)
     ''', [(emp_data + (emp_data[0],)) for emp_data in employees_data])
     conn.commit()
-
 
 class LoginFrame:
     def __init__(self, master):
