@@ -1,5 +1,7 @@
 import os
+import tempfile
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog
 from tkinter.messagebox import showinfo
 from tkinter import ttk  # Import ttk for Treeview
@@ -23,8 +25,6 @@ class EmployeeAccessFrame:
         self.welcome_label.pack(pady=20)
         self.menu_page_label = ctk.CTkLabel(master=self.frame, text="Menu Page", font=font1)
         self.menu_page_label.pack(pady=(10, 20))
-        self.document_button = ctk.CTkButton(master=self.frame, text="Document", font=font3)
-        self.document_button.pack(pady=10, fill='x', padx=50)
         self.history_button = ctk.CTkButton(master=self.frame, text="History", font=font3,
                                             command=lambda: ViewHistoryFrame(self.master, self.emp_id))
         self.history_button.pack(pady=10, fill='x', padx=50)
@@ -35,12 +35,12 @@ class EmployeeAccessFrame:
         self.request_button.pack(pady=10, fill='x', padx=50)
 
     def open_request_frame(self):
-
         # Close the current frame
+        self.frame.destroy()
+        # Close the entire EmployeeAccessFrame instance
         self.frame.destroy()
         # Create an instance of PTORequestFrame
         PTORequestFrame(self.master, self.emp_id)
-
 
 class PTORequestFrame:
     def __init__(self, master, emp_id):
@@ -112,6 +112,15 @@ class PTORequestFrame:
         self.submit_button = ctk.CTkButton(master=self.frame, text="SUBMIT", font=font2, command=self.submit_request)
         self.submit_button.pack(pady=(20, 10), fill='x', padx=150)
 
+        self.return_button = ctk.CTkButton(master=self.frame, text="Return", font=font3, command=self.return_to_main,
+                                           corner_radius=8)  #
+        self.return_button.pack(pady=10)
+        self.return_button.place(relx=1, rely=0, anchor='ne', x=-10, y=10)
+
+    def return_to_main(self):
+        self.frame.destroy()
+        EmployeeAccessFrame(self.master, self.emp_id)
+
     def fetch_and_fill_employee_details(self):
         # Now, you would use 'self.emp_id' to get the user's UserID from the 'employee' table.
         cursor.execute('SELECT UserID FROM employee WHERE EmpID = ?', (self.emp_id,))
@@ -130,7 +139,6 @@ class PTORequestFrame:
         self.last_name_entry.configure(state='disabled')
 
     def submit_request(self):
-
         # Check if any required field is empty
         if not all([self.reason_entry.get(), self.start_date_entry.get(), self.end_date_entry.get()]):
             showinfo("Incomplete Form", "Please fill out all required fields.")
@@ -178,6 +186,13 @@ class PTODocumentFrame:
                                            state="disabled")
         self.submit_button.pack(side=tk.TOP, pady=20)
 
+        self.returnReq_button = ctk.CTkButton(master=self.frame, text="Return", command=self.return_to_req)
+        self.returnReq_button.pack(side=tk.TOP, pady=20)
+
+    def return_to_req(self):
+        self.frame.destroy()
+        PTORequestFrame(self.master, self.pto_data["EmpID"])
+
     def browse_file(self):
         filename = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if filename:
@@ -221,29 +236,24 @@ class ViewHistoryFrame:
         self.frame = ctk.CTkFrame(master=self.master, corner_radius=10)
         self.frame.pack(fill='both', expand=True, padx=10, pady=10)
 
-        self.title_label = ctk.CTkLabel(master=self.frame, text="VIEW PTO HISTORY", font= font1)  # Adjust the font to match your application
+        self.title_label = ctk.CTkLabel(master=self.frame, text="VIEW PTO HISTORY", font=font1)
         self.title_label.pack(pady=10)
 
-        # Define the column headers before creating the Treeview
         self.headers = ["PTO ID", "Employee ID", "Submitted On", "Type", "Reason", "Start Date", "End Date"]
-
-        # Create Treeview widget
         self.tree = ttk.Treeview(self.frame, columns=self.headers, show='headings')
-        self.style_treeview()  # Call a method to style the Treeview
-
-        # Configure the columns and headings
+        self.style_treeview()
         for col in self.headers:
             self.tree.heading(col, text=col, anchor='center')
-            self.tree.column(col, anchor='center', width=120)  # Adjust the column width as needed
-
+            self.tree.column(col, anchor='center', width=120)
         self.tree.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        self.tree.bind("<Double-1>", self.on_double_click)  # Bind double-click event to treeview
 
-        # Insert data into the treeview
-        self.populate_history()
-
-        self.return_button = ctk.CTkButton(master=self.frame, text="Return", command=self.return_to_main, corner_radius=8)  # Make sure the corner radius matches other buttons
+        self.return_button = ctk.CTkButton(master=self.frame, text="Return", command=self.return_to_main,
+                                           corner_radius=8)
         self.return_button.pack(pady=10)
         self.return_button.place(relx=1, rely=0, anchor='ne', x=-10, y=10)
+
+        self.populate_history()
 
     def style_treeview(self):
         # You can adjust the colors and styles to match your customtkinter styles
@@ -256,16 +266,16 @@ class ViewHistoryFrame:
                         foreground="black",
                         rowheight=25,
                         fieldbackground="#ECECEC",
-                        font= font3)
+                        font=font3)
 
         style.map('Treeview',
-                  background=[('selected', '#347083')])  # Use your app's selection color
+                  background=[('selected', '#36719f')])  # Use your app's selection color
 
         style.configure("Treeview.Heading",
                         background="#D3D3D3",
                         foreground="black",
                         relief="flat",
-                        font= font2)
+                        font=font2)
 
         style.map("Treeview.Heading",
                   relief=[('active', 'groove'), ('pressed', 'sunken')])
@@ -285,3 +295,30 @@ class ViewHistoryFrame:
     def return_to_main(self):
         self.frame.destroy()
         EmployeeAccessFrame(self.master, self.emp_id)
+
+    def on_double_click(self, event):
+        item = self.tree.selection()[0]  # Get selected item
+        pto_id = self.tree.item(item, "values")[0]  # Extract PTO ID from selected item
+        pdf_data = self.fetch_pdf_data(pto_id)  # Fetch PDF data from database
+
+        if pdf_data:
+            self.show_pdf_frame(pdf_data)
+        else:
+            showinfo("No PDF Attached", f"No PDF is attached to PTO ID {pto_id}.")  # Show popup if no PDF is attached
+
+    def fetch_pdf_data(self, pto_id):
+        cursor.execute('SELECT PDFData FROM PTODocument WHERE PTOID = ?', (pto_id,))
+        result = cursor.fetchone()
+        if result:
+            return result[0]
+        else:
+            return None
+
+    def show_pdf_frame(self, pdf_data):
+        # Write the PDF data to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+            temp_pdf.write(pdf_data)
+            temp_pdf_path = temp_pdf.name
+
+        # Open the PDF with the default system PDF viewer through the web browser
+        webbrowser.open(f'file://{temp_pdf_path}', new=2)

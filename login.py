@@ -42,19 +42,24 @@ class LoginFrame:
         self.master = master
         self.frame = ctk.CTkFrame(master=self.master, corner_radius=10, width=500, height=300)
         self.frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        self.font3 = ('Arial', 13, 'bold')
-        self.username_label = ctk.CTkLabel(master=self.frame, text="Username", font=font3)
-        self.username_label.pack(pady=(30, 10))
-        self.username_entry = ctk.CTkEntry(master=self.frame, placeholder_text="Username", width=300)
-        self.username_entry.pack(pady=10)
+
+        self.title_label = ctk.CTkLabel(master=self.frame, text="PTO Employee Login", font=font1)
+        self.title_label.pack(pady=20, padx=10)
+        self.username_label = ctk.CTkLabel(master=self.frame, text="Employee ID", font=font3)
+        self.username_label.pack(pady=(30, 10), padx=10)
+        self.username_entry = ctk.CTkEntry(master=self.frame, placeholder_text="Employee ID#", width=300)
+        self.username_entry.pack(pady=10, padx=10)
         self.password_label = ctk.CTkLabel(master=self.frame, text="Password", font=font3)
-        self.password_label.pack(pady=10)
+        self.password_label.pack(pady=10, padx=10)
         self.password_entry = ctk.CTkEntry(master=self.frame, placeholder_text="Password", show="*", width=300)
-        self.password_entry.pack(pady=10)
-        self.login_button = ctk.CTkButton(master=self.frame, text="Login", font=font2, fg_color="#4e8d7c",
-                                          hover_color="#34675c",
+        self.password_entry.pack(pady=10, padx=10)
+        self.login_button = ctk.CTkButton(master=self.frame, text="Login", font=font2, fg_color="#3b8ed0",
+                                          hover_color="#36719f",
                                           command=self.login_account)
-        self.login_button.pack(pady=20)
+        self.login_button.pack(pady=20, padx=10)
+
+        # Bind the <Return> key event to trigger the login action
+        self.master.bind("<Return>", lambda event: self.login_button.invoke())
 
     def login_account(self):
         emp_id = self.username_entry.get()

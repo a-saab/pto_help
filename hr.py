@@ -1,6 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from fonts import *
+from PTOhistory import *
 
 class HRAccessFrame:
     def __init__(self, master, emp_id):
@@ -14,7 +15,7 @@ class HRAccessFrame:
         self.menu_page_label.pack(pady=(10, 20))
         self.document_button = ctk.CTkButton(master=self.frame, text="Document", font=font3)
         self.document_button.pack(pady=10, fill='x', padx=50)
-        self.history_button = ctk.CTkButton(master=self.frame, text="History", font=font3)
+        self.history_button = ctk.CTkButton(master=self.frame, text="History", font=font3, command=self.open_history_frame)
         self.history_button.pack(pady=10, fill='x', padx=50)
         self.plan_button = ctk.CTkButton(master=self.frame, text="Plan", font=font3)
         self.plan_button.pack(pady=10, fill='x', padx=50)
@@ -22,3 +23,11 @@ class HRAccessFrame:
         self.request_button.pack(pady=10, fill='x', padx=50)
         self.schedule_button = ctk.CTkButton(master=self.frame, text="Schedule", font=font3)
         self.schedule_button.pack(pady=10, fill='x', padx=50)
+
+
+    def open_history_frame(self):
+        # Close the current frame
+        self.frame.destroy()
+        # Close the entire EmployeeAccessFrame instance
+        self.frame.destroy()
+        ViewHistoryFrame(self.master, self.emp_id, 'HR')
